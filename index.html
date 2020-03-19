@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>COVID19 Visualization</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="map.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+
+            <div class="col">
+                <h2>Global COVID-19 Timeline</h2>
+
+                Use arrow keys or the slider to change the date. [ <a href="">source code</a> | <a
+                    href="https://github.com/CSSEGISandData/COVID-19">data</a> ]
+            </div>
+
+            <div class="col align-middle">
+                <h3 class="date-output"></h3>
+                <input type="range" name="dater" id="dater" class="dater custom-range" autofocus="true">
+            </div>
+
+        </div>
+
+        <div class="map-container"></div>
+    </div>
+
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="map.js"></script>
+</body>
+
+</html>
