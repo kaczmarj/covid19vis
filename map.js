@@ -2,7 +2,7 @@
 // Data from https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html
 // Converted to geoJSON with https://mygeodata.cloud/converter/
 
-const covidDataURL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv";
+const covidDataURL = `https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv?day=${(new Date()).getUTCDate()}`;
 const worldJSON = "world.geo.json"
 
 Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
