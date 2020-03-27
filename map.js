@@ -35,6 +35,7 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
         // Remove entries that do not correspond to their true location.
         // For example, cases on cruise ships.
         covidData = covidData.filter(d => (d.Long != 0) && (d.Lat != 0))
+            .sort((x, y) => { return d3.descending(+x[latestDate], +y[latestDate]) });
 
         svg
             .append("g")
