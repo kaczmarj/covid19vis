@@ -16,6 +16,8 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
             uniqueDates = covidData.columns.slice(4),
             latestDate = uniqueDates.slice(-1)[0],
             dataOnHover = null,  // Object with data of location on hover.
+            dataActive = null, // Object with data of location that was clicked.
+            circleActivePrevious = null,
             svg = d3.select("div.map-container")
                 .append("svg")
                 .attr("preserveAspectRatio", "xMinYMin meet")
@@ -57,10 +59,32 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
                 dataOnHover = d
             })
             .on("mouseout", (d, i, n) => {
+                dataOnHover = null;
+                if (Object.is(d, dataActive)) {
+                    return;
+                }
                 d3.select(n[i]).style("stroke-width", null);
                 let date = uniqueDates[d3.select("input.dater").property("value")];
                 setHeader(date, globalCases[date], "the world");
-                dataOnHover = null;
+
+            })
+            .on("click", (d, i, n) => {
+                let circle = d3.select(n[i]);
+                // Clicking on same object that was clicked.
+                if (Object.is(d, dataActive)) {
+                    console.log("clicked same circle");
+                    dataActive = null;
+                    circle.style("stroke-width", null);
+                } else {
+                    circle.style("stroke-width", "0.3");
+                    dataActive = d;
+                    if (circleActivePrevious !== null && !Object.is(circle, circleActivePrevious)) {
+                        console.log("Clicked a different circle");
+                        circleActivePrevious.style("stroke-width", null);
+                    }
+                    circleActivePrevious = circle;
+                }
+
             });
 
         d3.select("input.dater")
@@ -73,11 +97,15 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
                 d3.selectAll(".circle")
                     .transition()
                     .attr("r", d => Math.sqrt(d[date]) * factor);
-                if (dataOnHover === null) {
-                    setHeader(date, globalCases[date], "the world");
-                } else { // User has mouse over a location's bubble.
+
+                if (dataOnHover !== null) {
                     let location = getLocation(dataOnHover);
-                    setHeader(date, dataOnHover[date], location)
+                    setHeader(date, dataOnHover[date], location);
+                } else if (dataActive !== null) {
+                    let location = getLocation(dataActive);
+                    setHeader(date, dataActive[date], location);
+                } else {
+                    setHeader(date, globalCases[date], "the world");
                 }
 
             });
