@@ -3,6 +3,8 @@
 const covidDataURL = `https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv?date=${(new Date()).getUTCDate()}`;
 const worldJSON = "countries.geo.json"
 
+var cc;
+
 Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
     .then(result => {
 
@@ -60,30 +62,41 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
             })
             .on("mouseout", (d, i, n) => {
                 dataOnHover = null;
-                if (Object.is(d, dataActive)) {
-                    return;
-                }
-                d3.select(n[i]).style("stroke-width", null);
                 let date = uniqueDates[d3.select("input.dater").property("value")];
-                setHeader(date, globalCases[date], "the world");
-
+                if (Object.is(d, dataActive)) {
+                } else if (dataActive !== null) {
+                    setHeader(date, dataActive[date], getLocation(dataActive));
+                    d3.select(n[i]).style("stroke-width", null);
+                } else {
+                    setHeader(date, globalCases[date], "the world");
+                    d3.select(n[i]).style("stroke-width", null);
+                }
             })
             .on("click", (d, i, n) => {
                 let circle = d3.select(n[i]);
-                // Clicking on same object that was clicked.
-                if (Object.is(d, dataActive)) {
-                    console.log("clicked same circle");
+                cc = circle;
+
+                function circlesEqual(c1, c2) {
+                    return (
+                        (c1._groups[0][0].cx === c2._groups[0][0].cx)
+                        && (c1._groups[0][0].cy === c2._groups[0][0].cy))
+                }
+
+                if (!Object.is(d, dataActive)) {
+                    dataActive = d;
+                    circle.style("stroke-width", "0.3");
+                    if (circleActivePrevious === null) {
+                        circleActivePrevious = circle;
+                    } else {
+                        if (!circlesEqual(circle, circleActivePrevious)) {
+                            circleActivePrevious.style("stroke-width", null);
+                        }
+                    }
+                } else {
                     dataActive = null;
                     circle.style("stroke-width", null);
-                } else {
-                    circle.style("stroke-width", "0.3");
-                    dataActive = d;
-                    if (circleActivePrevious !== null && !Object.is(circle, circleActivePrevious)) {
-                        console.log("Clicked a different circle");
-                        circleActivePrevious.style("stroke-width", null);
-                    }
-                    circleActivePrevious = circle;
                 }
+                circleActivePrevious = circle;
 
             });
 
@@ -121,7 +134,7 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
         function setHeader(date, cases, location) {
             cases = Number(+cases).toLocaleString();
             d3.select(".date-output")
-                .text(`${date} ${cases} confirmed cases in ${location}`);
+                .text(`${date} · ${cases} confirmed cases in ${location}`);
         }
 
         setHeader(latestDate, globalCases[latestDate], "the world");
