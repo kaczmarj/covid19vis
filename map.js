@@ -15,6 +15,7 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
             path = d3.geoPath().projection(projection),
             uniqueDates = covidData.columns.slice(4),
             latestDate = uniqueDates.slice(-1)[0],
+            dataOnHover = null,  // Object with data of location on hover.
             svg = d3.select("div.map-container")
                 .append("svg")
                 .attr("preserveAspectRatio", "xMinYMin meet")
@@ -51,19 +52,15 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
             .attr("r", d => Math.sqrt(Math.abs(d[latestDate])) * factor)
             .on("mouseover", (d, i, n) => {
                 d3.select(n[i]).style("stroke-width", "0.3")
-                let date = uniqueDates[d3.select("input.dater").property("value")],
-                    location = "";
-                if (d["Province/State"]) {
-                    location = `${d["Province/State"]}, ${d["Country/Region"]}`;
-                } else {
-                    location = d["Country/Region"];
-                }
-                setHeader(date, d[date], location);
+                let date = uniqueDates[d3.select("input.dater").property("value")];
+                setHeader(date, d[date], getLocation(d));
+                dataOnHover = d
             })
             .on("mouseout", (d, i, n) => {
                 d3.select(n[i]).style("stroke-width", null);
                 let date = uniqueDates[d3.select("input.dater").property("value")];
                 setHeader(date, globalCases[date], "the world");
+                dataOnHover = null;
             });
 
         d3.select("input.dater")
@@ -76,8 +73,22 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
                 d3.selectAll(".circle")
                     .transition()
                     .attr("r", d => Math.sqrt(d[date]) * factor);
-                setHeader(date, globalCases[date], "the world");
+                if (dataOnHover === null) {
+                    setHeader(date, globalCases[date], "the world");
+                } else { // User has mouse over a location's bubble.
+                    let location = getLocation(dataOnHover);
+                    setHeader(date, dataOnHover[date], location)
+                }
+
             });
+
+        function getLocation(d) {
+            if (d["Province/State"]) {
+                return `${d["Province/State"]}, ${d["Country/Region"]}`;
+            } else {
+                return d["Country/Region"];
+            }
+        }
 
         function setHeader(date, cases, location) {
             cases = Number(+cases).toLocaleString();
