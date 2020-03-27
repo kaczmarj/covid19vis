@@ -8,7 +8,7 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
 
         let countries = result[0],
             covidData = result[1],
-            factor = 0.5,
+            factor = 0.37,  // Controls how large circles are.
             width = 900,
             height = 500,
             projection = d3.geoNaturalEarth1().translate([width / 2, height / 2]),
@@ -21,9 +21,16 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
                 .attr("viewBox", `0 0 ${width} ${height}`)
                 .classed("svg-content", true);
 
-        console.log(countries.features);
+        let globalCases = {};
+        for (j = 0; j < uniqueDates.length; j++) {
+            let thisDate = uniqueDates[j];
+            globalCases[thisDate] = d3.sum(covidData, d => d[thisDate]);
+        }
 
-        // Bind the data to the SVG and create one path per GeoJSON feature
+        // Remove entries that do not correspond to their true location.
+        // For example, cases on cruise ships.
+        covidData = covidData.filter(d => (d.Long != 0) && (d.Lat != 0))
+
         svg
             .append("g")
             .selectAll("path")
@@ -42,11 +49,22 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
             .attr("cx", d => projection([d.Long, d.Lat])[0])
             .attr("cy", d => projection([d.Long, d.Lat])[1])
             .attr("r", d => Math.sqrt(Math.abs(d[latestDate])) * factor)
-
-        d3.select(".date-output")
-            .text(latestDate)
-
-        console.log(covidData);
+            .on("mouseover", (d, i, n) => {
+                d3.select(n[i]).style("stroke-width", "0.3")
+                let date = uniqueDates[d3.select("input.dater").property("value")],
+                    location = "";
+                if (d["Province/State"]) {
+                    location = `${d["Province/State"]}, ${d["Country/Region"]}`;
+                } else {
+                    location = d["Country/Region"];
+                }
+                setHeader(date, d[date], location);
+            })
+            .on("mouseout", (d, i, n) => {
+                d3.select(n[i]).style("stroke-width", null);
+                let date = uniqueDates[d3.select("input.dater").property("value")];
+                setHeader(date, globalCases[date], "the world");
+            });
 
         d3.select("input.dater")
             .attr("min", 0)
@@ -58,9 +76,17 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
                 d3.selectAll(".circle")
                     .transition()
                     .attr("r", d => Math.sqrt(d[date]) * factor);
-                // Modify text.
-                d3.select(".date-output")
-                    .text(date)
+                setHeader(date, globalCases[date], "the world");
             });
+
+        function setHeader(date, cases, location) {
+            cases = Number(+cases).toLocaleString();
+            d3.select(".date-output")
+                .text(`${date} ${cases} confirmed cases in ${location}`);
+        }
+
+        setHeader(latestDate, globalCases[latestDate], "the world");
+
+
     })
     .catch(err => console.error(err));
