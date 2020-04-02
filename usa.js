@@ -25,6 +25,7 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
             for (let di = 0; di < data.length; di++) {
                 let thisData = data[di];
                 if (thisProp["fips"] === thisData["fips"]) {
+                    thisProp["location"] = `${thisData["county"]}, ${thisData["state"]}`;
                     let date = thisData["date"].replace(/-/g, "/")
                     thisProp[date] = {
                         "cases": +thisData["cases"],
@@ -51,8 +52,17 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
         console.log(data[0]);
         console.log(geo.features[100].properties);
 
-        let maxCases = d3.max(data, d => +d["cases"]);
-        let scale = d3.scaleLinear().domain([0, 1000]).range(["purple", "yellow"]).clamp(true);
+        let tooltipDiv = d3.select("body")
+            .append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        let maxCasesNorm = d3.max(geo.features, d => {
+            d = d.properties["2020/03/31"];
+            return (d ? d["casesNorm"] : 0);
+        });
+
+        let scale = d3.scaleLinear().domain([0, maxCasesNorm]).range(["yellow", "purple"]).clamp(true);
 
         svg
             .append("g")
@@ -66,12 +76,44 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
             .style("fill", d => {
                 d = d.properties["2020/03/31"];
                 if (d) {
-                    return scale(d["cases"]);
+                    return scale(d["casesNorm"]);
                 }
-                return "gray";
+                return "lightgray";
+            })
+            .on("mouseover", d => {
+                d = d.properties;
+                let date = "2020/03/31";
+                let tooltipText = d["location"];
+
+                if (!tooltipText) {
+                    tooltipText = "No data";
+                } else if (d[date]) {
+                    tooltipText = `<strong>${d["location"]}</strong><br/>
+                    - Cases: ${d[date]["cases"].toLocaleString()}*<br/>
+                    - Deaths: ${d[date]["deaths"].toLocaleString()}*<br/>
+                    - Cases / 100k: ${Number(d[date]["casesNorm"].toFixed(2)).toLocaleString()}*<br/>
+                    - Ceaths / 100k: ${Number(d[date]["deathsNorm"].toFixed(2)).toLocaleString()}*<br/>
+                    - Population: ${d["population"].toLocaleString()}†<br/>
+                    <small>* confirmed</small><br/>
+                    <small>† 7/1/2018 estimate</small>`;
+                }
+
+                tooltipDiv.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltipDiv.html(tooltipText)
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY - 28) + "px");
+            })
+            .on("mouseout", d => {
+                tooltipDiv.transition()
+                    .duration(500)
+                    .style("opacity", 0);
             });
 
-        // console.log(geo.features[100].properties["2020/03/30"]);
+
+
+
 
     })
     .catch(e => console.error(e));
