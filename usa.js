@@ -15,7 +15,7 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
 
             // Find the population of this county.
             for (let pi = 0; pi < populations.length; pi++) {
-                if (populations[pi]["fips"] == thisProp["fips"]) {
+                if (populations[pi]["fips"] === thisProp["fips"]) {
                     thisProp["population"] = +populations[pi]["population"];
                     break;
                 }
@@ -49,6 +49,7 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
                 .attr("viewBox", `0 0 ${width} ${height}`)
                 .classed("svg-content", true);
 
+
         console.log(data[0]);
         console.log(geo.features[100].properties);
 
@@ -62,6 +63,29 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
             return (d ? d["casesNorm"] : 0);
         });
 
+        let uniqueDates = d3.set(data.map(d => d.date.replace(/-/g, "/"))).values();
+        d3.select("input#usa")
+            .attr("min", 0)
+            .attr("max", uniqueDates.length - 1)
+            .attr("value", uniqueDates.length - 1)
+            .attr("step", "1")
+            .on("input", function () {
+                let date = uniqueDates[+this.value];
+                console.log(date);
+                d3.selectAll(".usa-svg")
+                    .transition()
+                    .style("fill", d => {
+                        d = d.properties[date];
+                        if (d) {
+                            return scale(d["casesNorm"]);
+                        }
+                        return null;
+                    })
+                d3.select(".date-output-usa")
+                    .text(date);
+
+            });
+
         let scale = d3.scaleSequential(d3.interpolateInferno)
             .domain([0, maxCasesNorm * 0.75])
             .clamp(true);
@@ -73,10 +97,11 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
             .enter()
             .append("path")
             .attr("d", path)
-            .attr("class", "country-state")
+            .attr("class", "country-state usa-svg")
             .style("stroke-width", "0.15")
             .style("fill", d => {
-                d = d.properties["2020/03/31"];
+                let date = uniqueDates[d3.select("input#usa").property("value")];
+                d = d.properties[date];
                 if (d) {
                     return scale(d["casesNorm"]);
                 }
@@ -84,8 +109,8 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
             })
             .on("mouseover", d => {
                 d = d.properties;
-                let date = "2020/03/31";
-                let tooltipText = d["location"];
+                let date = uniqueDates[d3.select("input#usa").property("value")],
+                    tooltipText = d["location"];
 
                 if (!tooltipText) {
                     tooltipText = "No data";
@@ -113,9 +138,8 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
                     .style("opacity", 0);
             });
 
-
-
-
+        d3.select(".date-output-usa")
+            .text(uniqueDates[d3.select("input#usa").property("value")]);
 
     })
     .catch(e => console.error(e));
