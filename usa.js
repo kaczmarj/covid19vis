@@ -62,7 +62,9 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
             return (d ? d["casesNorm"] : 0);
         });
 
-        let scale = d3.scaleLinear().domain([0, maxCasesNorm]).range(["yellow", "purple"]).clamp(true);
+        let scale = d3.scaleSequential(d3.interpolateInferno)
+            .domain([0, maxCasesNorm * 0.75])
+            .clamp(true);
 
         svg
             .append("g")
@@ -78,7 +80,7 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
                 if (d) {
                     return scale(d["casesNorm"]);
                 }
-                return "lightgray";
+                return null;
             })
             .on("mouseover", d => {
                 d = d.properties;

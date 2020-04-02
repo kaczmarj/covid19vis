@@ -31,4 +31,5 @@ div.tooltip {
     border: 0px;
     border-radius: 5px;
     pointer-events: none;
+    fill: white;
 }

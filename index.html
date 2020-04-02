@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>COVID19 Visualization</title>
+    <title>COVID-19 Visualization</title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
@@ -14,25 +14,39 @@
     <div class="container-fluid">
         <div class="row">
 
-            <div class="col">
-                <h2>Global COVID-19 Timeline</h2>
+            <div class="col text-center">
+                <h1>COVID-19 Timeline</h1>
 
-                Move the slider to change the date. [ <a href="https://github.com/kaczmarj/covid19vis">source code</a> |
-                <a href="https://github.com/CSSEGISandData/COVID-19">data</a> | <a href="#" data-toggle="tooltip"
-                    data-placement="bottom" data-html="true"
-                    title="- Change date with slider<br>- Hover over a circle to see values<br>- Click a circle and move slider to see values over time">help</a>
-                ]
-            </div>
-
-            <div class="col align-middle">
-                <h3 class="date-output"></h3>
-                <input type="range" name="dater" id="dater" class="dater custom-range" autofocus="true">
+                <a href="https://github.com/kaczmarj/covid19vis">
+                    <img height="24" width="24"
+                        src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/github.svg" /></a>
+                | <a href="https://github.com/nytimes/covid-19-data">NYT data</a> | <a
+                    href="https://github.com/CSSEGISandData/COVID-19">JHU CSSE data</a>
             </div>
 
         </div>
 
         <div class="usa-container"></div>
+
+        <div class="row mt-5">
+            <div class="col"></div>
+            <div class="col-9 align-middle">
+                <h3 class="date-output text-center"></h3>
+
+                - Change date with slider
+                - Hover over a circle to see values
+                - Click a circle and move slider to see values over time
+                <a href="https://github.com/CSSEGISandData/COVID-19">data</a>
+
+                <input type="range" name="dater" id="dater" class="dater custom-range" autofocus="true">
+            </div>
+            <div class="col"></div>
+        </div>
+
         <div class="map-container"></div>
+
+
+
     </div>
 
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
