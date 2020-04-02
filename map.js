@@ -24,8 +24,6 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
                 .attr("viewBox", `0 0 ${width} ${height}`)
                 .classed("svg-content", true);
 
-
-
         let globalCases = {};
         for (j = 0; j < uniqueDates.length; j++) {
             let thisDate = uniqueDates[j];
@@ -57,13 +55,13 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
             .attr("r", d => Math.sqrt(Math.abs(d[latestDate])) * factor)
             .on("mouseover", (d, i, n) => {
                 d3.select(n[i]).style("stroke-width", "0.3")
-                let date = uniqueDates[d3.select("input.dater").property("value")];
+                let date = uniqueDates[d3.select("input#world").property("value")];
                 setHeader(date, d[date], getLocation(d));
                 dataOnHover = d
             })
             .on("mouseout", (d, i, n) => {
                 dataOnHover = null;
-                let date = uniqueDates[d3.select("input.dater").property("value")];
+                let date = uniqueDates[d3.select("input#world").property("value")];
                 if (Object.is(d, dataActive)) {
                 } else if (dataActive !== null) {
                     setHeader(date, dataActive[date], getLocation(dataActive));
@@ -100,7 +98,7 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
 
             });
 
-        d3.select("input.dater")
+        d3.select("input#world")
             .attr("min", 0)
             .attr("max", uniqueDates.length - 1)
             .attr("value", uniqueDates.length - 1)
