@@ -3,8 +3,6 @@
 const covidDataURL = `https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv?date=${(new Date()).getUTCDate()}`;
 const worldJSON = "countries.geo.json"
 
-var cc;
-
 Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
     .then(result => {
 
@@ -25,6 +23,8 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
                 .attr("preserveAspectRatio", "xMinYMin meet")
                 .attr("viewBox", `0 0 ${width} ${height}`)
                 .classed("svg-content", true);
+
+
 
         let globalCases = {};
         for (j = 0; j < uniqueDates.length; j++) {
@@ -75,7 +75,6 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
             })
             .on("click", (d, i, n) => {
                 let circle = d3.select(n[i]);
-                cc = circle;
 
                 function circlesEqual(c1, c2) {
                     return (
