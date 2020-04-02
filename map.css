@@ -19,3 +19,17 @@ svg {
     stroke-width: 0.1;
     fill-opacity: 0.15;
 }
+
+div.tooltip {
+    position: absolute;
+    text-align: left;
+    /* width: 60px; */
+    /* height: 28px; */
+    padding: 5px;
+    font: 12px sans-serif;
+    background: white;
+    border: 0px;
+    border-radius: 5px;
+    pointer-events: none;
+    fill: white;
+}

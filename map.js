@@ -3,14 +3,12 @@
 const covidDataURL = `https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv?date=${(new Date()).getUTCDate()}`;
 const worldJSON = "countries.geo.json"
 
-var cc;
-
 Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
     .then(result => {
 
         let countries = result[0],
             covidData = result[1],
-            factor = 0.37,  // Controls how large circles are.
+            factor = 0.25,  // Controls how large circles are.
             width = 900,
             height = 500,
             projection = d3.geoNaturalEarth1().translate([width / 2, height / 2]),
@@ -57,13 +55,13 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
             .attr("r", d => Math.sqrt(Math.abs(d[latestDate])) * factor)
             .on("mouseover", (d, i, n) => {
                 d3.select(n[i]).style("stroke-width", "0.3")
-                let date = uniqueDates[d3.select("input.dater").property("value")];
+                let date = uniqueDates[d3.select("input#world").property("value")];
                 setHeader(date, d[date], getLocation(d));
                 dataOnHover = d
             })
             .on("mouseout", (d, i, n) => {
                 dataOnHover = null;
-                let date = uniqueDates[d3.select("input.dater").property("value")];
+                let date = uniqueDates[d3.select("input#world").property("value")];
                 if (Object.is(d, dataActive)) {
                 } else if (dataActive !== null) {
                     setHeader(date, dataActive[date], getLocation(dataActive));
@@ -75,7 +73,6 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
             })
             .on("click", (d, i, n) => {
                 let circle = d3.select(n[i]);
-                cc = circle;
 
                 function circlesEqual(c1, c2) {
                     return (
@@ -101,7 +98,7 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
 
             });
 
-        d3.select("input.dater")
+        d3.select("input#world")
             .attr("min", 0)
             .attr("max", uniqueDates.length - 1)
             .attr("value", uniqueDates.length - 1)
