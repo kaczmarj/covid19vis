@@ -121,7 +121,7 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.json(populationData)])
                     - Cases: ${d[date]["cases"].toLocaleString()}*<br/>
                     - Deaths: ${d[date]["deaths"].toLocaleString()}*<br/>
                     - Cases / 100k: ${Number(d[date]["casesNorm"].toFixed(2)).toLocaleString()}*<br/>
-                    - Ceaths / 100k: ${Number(d[date]["deathsNorm"].toFixed(2)).toLocaleString()}*<br/>
+                    - Deaths / 100k: ${Number(d[date]["deathsNorm"].toFixed(2)).toLocaleString()}*<br/>
                     - Population: ${d["population"].toLocaleString()}†<br/>
                     <small>* confirmed</small><br/>
                     <small>† 7/1/2018 estimate</small>`;
