@@ -4,7 +4,7 @@ const populationData = "cc-population-est2018-alldata.csv";
 
 Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
     .then(result => {
-        let geo = result[0],
+        const geo = result[0],
             data = result[1],
             populations = result[2];
 
