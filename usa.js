@@ -1,45 +1,47 @@
 const countyData = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv";
 const countyGeo = "cb_2018_us_county_20m.geojson";
-const populationData = "cc-population-est2018-alldata.csv";
+const populationData = "cc-population-est2018-alldata.json";
 
-Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
+Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.json(populationData)])
     .then(result => {
         const geo = result[0],
             data = result[1],
             populations = result[2];
 
-        // Move covid case data to geojson object.
-        for (let gi = 0; gi < geo.features.length; gi++) {
-            let thisProp = geo.features[gi].properties;
-            thisProp["fips"] = thisProp["STATEFP"] + thisProp["COUNTYFP"];
+        // Merge data quickly with lots and lots of help from
+        // https://stackoverflow.com/a/60984042/5666087
 
-            // Find the population of this county.
-            for (let pi = 0; pi < populations.length; pi++) {
-                if (populations[pi]["fips"] === thisProp["fips"]) {
-                    thisProp["population"] = +populations[pi]["population"];
-                    break;
-                }
-            }
+        const nycFips = "36nyc";
+        data.forEach(d => { if (d.county === "New York City") { d.fips = nycFips } });
 
-            // Find the covid case data for this county.
-            for (let di = 0; di < data.length; di++) {
-                let thisData = data[di];
-                if (thisProp["fips"] === thisData["fips"]) {
-                    thisProp["location"] = `${thisData["county"]}, ${thisData["state"]}`;
-                    let date = thisData["date"].replace(/-/g, "/")
-                    thisProp[date] = {
-                        "cases": +thisData["cases"],
-                        "casesNorm": +thisData["cases"] / thisProp["population"] * 100000,
-                        "deaths": + thisData["deaths"],
-                        "deathsNorm": +thisData["deaths"] / thisProp["population"] * 100000,
-                    };
-                    // Do not break out of the loop early because there are multiple
-                    // rows (dates) per county.
-                }
+        const caseValueObjsByFips = {};
+        for (const aCase of data) {
+            if (!caseValueObjsByFips[aCase.fips]) caseValueObjsByFips[aCase.fips] = {};
+            caseValueObjsByFips[aCase.fips][aCase.date] = {
+                cases: +aCase.cases,
+                deaths: +aCase.deaths,
+            };
+            if (populations[aCase.fips]) {
+                let dn = caseValueObjsByFips[aCase.fips][aCase.date],
+                    popn = populations[aCase.fips].population / 100000;
+                dn.casesNorm = dn.cases / popn;
+                dn.deathsNorm = dn.deaths / popn;
             }
         }
 
-        let width = 900,
+        // Fix for NYC. Geo data includes all five counties, but covid data lists only
+        // new york city (sum of five counties).
+        const nycCounties = ['36061', '36081', '36047', '36085', '36005'];
+        geo.features.forEach(d => {
+            d.properties.fips = d.properties.STATEFP + d.properties.COUNTYFP
+            if (nycCounties.includes(d.properties.fips)) d.properties.fips = nycFips;
+        })
+        for (const item of geo.features) {
+            Object.assign(item.properties, caseValueObjsByFips[item.properties.fips]);
+            Object.assign(item.properties, populations[item.properties.fips]);
+        }
+
+        const width = 900,
             height = 500,
             projection = d3.geoAlbersUsa().translate([width / 2, height / 2]),
             path = d3.geoPath().projection(projection),
@@ -49,21 +51,12 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
                 .attr("viewBox", `0 0 ${width} ${height}`)
                 .classed("svg-content", true);
 
-
-        console.log(data[0]);
-        console.log(geo.features[100].properties);
-
-        let tooltipDiv = d3.select("body")
+        const tooltipDiv = d3.select("body")
             .append("div")
             .attr("class", "tooltip")
             .style("opacity", 0);
 
-        let maxCasesNorm = d3.max(geo.features, d => {
-            d = d.properties["2020/03/31"];
-            return (d ? d["casesNorm"] : 0);
-        });
-
-        let uniqueDates = d3.set(data.map(d => d.date.replace(/-/g, "/"))).values();
+        const uniqueDates = d3.set(data.map(d => d.date)).values();
         d3.select("input#usa")
             .attr("min", 0)
             .attr("max", uniqueDates.length - 1)
@@ -71,7 +64,6 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
             .attr("step", "1")
             .on("input", function () {
                 let date = uniqueDates[+this.value];
-                console.log(date);
                 d3.selectAll(".usa-svg")
                     .transition()
                     .style("fill", d => {
@@ -86,8 +78,18 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
 
             });
 
+        let date = uniqueDates[d3.select("input#usa").property("value")];
+        let maxCasesNorm = d3.max(geo.features, d => {
+            d = d.properties[date];
+            if (d) {
+                if (d.casesNorm) return d.casesNorm
+            }
+            return 0
+        });
+
+
         let scale = d3.scaleSequential(d3.interpolateInferno)
-            .domain([0, maxCasesNorm * 0.75])
+            .domain([0, maxCasesNorm * 0.66])
             .clamp(true);
 
         svg
@@ -110,7 +112,7 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.csv(populationData)])
             .on("mouseover", d => {
                 d = d.properties;
                 let date = uniqueDates[d3.select("input#usa").property("value")],
-                    tooltipText = d["location"];
+                    tooltipText = d["location"] + d["fips"];
 
                 if (!tooltipText) {
                     tooltipText = "No data";
