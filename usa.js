@@ -112,7 +112,7 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.json(populationData)])
             .on("mouseover", d => {
                 d = d.properties;
                 let date = uniqueDates[d3.select("input#usa").property("value")],
-                    tooltipText = d["location"] + d["fips"];
+                    tooltipText = d["location"];
 
                 if (!tooltipText) {
                     tooltipText = "No data";
@@ -125,6 +125,8 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.json(populationData)])
                     - Population: ${d["population"].toLocaleString()}†<br/>
                     <small>* confirmed</small><br/>
                     <small>† 7/1/2018 estimate</small>`;
+                } else {
+                    tooltipText = `<strong>${d["location"]}</strong><br/><small>No data<small>`;
                 }
 
                 tooltipDiv.transition()
