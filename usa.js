@@ -1,6 +1,6 @@
-const countyData = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv";
-const countyGeo = "cb_2018_us_county_20m.geojson";
-const populationData = "cc-population-est2018-alldata.json";
+const countyData = `https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv?date=${(new Date()).getUTCDate()}`,
+    countyGeo = "cb_2018_us_county_20m.geojson",
+    populationData = "cc-population-est2018-alldata.json";
 
 Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.json(populationData)])
     .then(result => {
@@ -123,8 +123,8 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.json(populationData)])
                     - Cases / 100k: ${Number(d[date]["casesNorm"].toFixed(2)).toLocaleString()}*<br/>
                     - Deaths / 100k: ${Number(d[date]["deathsNorm"].toFixed(2)).toLocaleString()}*<br/>
                     - Population: ${d["population"].toLocaleString()}†<br/>
-                    <small>* confirmed</small><br/>
-                    <small>† 7/1/2018 estimate</small>`;
+                    <small>* reported as of ${date}</small><br/>
+                    <small>† 2018-07-01 estimate</small>`;
                 } else {
                     tooltipText = `<strong>${d["location"]}</strong><br/><small>No data<small>`;
                 }
