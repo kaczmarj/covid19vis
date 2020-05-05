@@ -89,7 +89,7 @@ Promise.all([d3.json(countyGeo), d3.csv(countyData), d3.json(populationData)])
 
 
         let scale = d3.scaleSequential(d3.interpolateInferno)
-            .domain([0, 600])
+            .domain([0, 800])
             .clamp(true);
 
         svg
