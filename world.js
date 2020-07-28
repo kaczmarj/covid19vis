@@ -8,7 +8,7 @@ Promise.all([d3.json(worldJSON), d3.csv(covidDataURL)])
 
         let countries = result[0],
             covidData = result[1],
-            factor = 0.15,  // Controls how large circles are.
+            factor = 0.05,  // Controls how large circles are.
             width = 900,
             height = 500,
             projection = d3.geoNaturalEarth1().translate([width / 2, height / 2]),
